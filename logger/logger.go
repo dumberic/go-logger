@@ -121,7 +121,7 @@ func mkdirlog(dir string) (e error) {
 	return
 }
 
-func console(s ...interface{}) {
+func console(level string, s ...interface{}) {
 	if consoleAppender {
 		_, file, line, _ := runtime.Caller(2)
 		short := file
@@ -132,7 +132,7 @@ func console(s ...interface{}) {
 			}
 		}
 		file = short
-		log.Println(file, strconv.Itoa(line), s)
+		log.Println(level, file, strconv.Itoa(line), s[0])
 	}
 }
 
@@ -154,9 +154,9 @@ func Debug(v ...interface{}) {
 
 	if logLevel <= DEBUG {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("debug", v))
+			logObj.lg.Output(2, fmt.Sprintln("DEBUG", v))
 		}
-		console("debug", v)
+		console("DEBUG", v)
 	}
 }
 func Info(v ...interface{}) {
@@ -170,9 +170,9 @@ func Info(v ...interface{}) {
 	}
 	if logLevel <= INFO {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("info", v))
+			logObj.lg.Output(2, fmt.Sprintln("INFO", v))
 		}
-		console("info", v)
+		console("INFO", v)
 	}
 }
 func Warn(v ...interface{}) {
@@ -187,9 +187,9 @@ func Warn(v ...interface{}) {
 
 	if logLevel <= WARN {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("warn", v))
+			logObj.lg.Output(2, fmt.Sprintln("WARN", v))
 		}
-		console("warn", v)
+		console("WARN", v)
 	}
 }
 func Error(v ...interface{}) {
@@ -203,9 +203,9 @@ func Error(v ...interface{}) {
 	}
 	if logLevel <= ERROR {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("error", v))
+			logObj.lg.Output(2, fmt.Sprintln("ERROR", v))
 		}
-		console("error", v)
+		console("ERROR", v)
 	}
 }
 func Fatal(v ...interface{}) {
@@ -219,9 +219,9 @@ func Fatal(v ...interface{}) {
 	}
 	if logLevel <= FATAL {
 		if logObj != nil {
-			logObj.lg.Output(2, fmt.Sprintln("fatal", v))
+			logObj.lg.Output(2, fmt.Sprintln("FATAL", v))
 		}
-		console("fatal", v)
+		console("FATAL", v)
 	}
 }
 
@@ -255,7 +255,11 @@ func (f *_FILE) rename() {
 			t, _ := time.Parse(DATEFORMAT, time.Now().Format(DATEFORMAT))
 			f._date = &t
 			f.logfile, _ = os.Create(f.dir + "/" + f.filename)
-			f.lg = log.New(logObj.logfile, "\n", log.Ldate|log.Ltime|log.Lshortfile)
+			var line string = "\n"
+			if runtime.GOOS == "windows" {
+				line = "\r\n"
+			}
+			f.lg = log.New(logObj.logfile, line, log.Ldate|log.Ltime|log.Lshortfile)
 		}
 	} else {
 		f.coverNextOne()
@@ -276,7 +280,11 @@ func (f *_FILE) coverNextOne() {
 	}
 	os.Rename(f.dir+"/"+f.filename, f.dir+"/"+f.filename+"."+strconv.Itoa(int(f._suffix)))
 	f.logfile, _ = os.Create(f.dir + "/" + f.filename)
-	f.lg = log.New(logObj.logfile, "\n", log.Ldate|log.Ltime|log.Lshortfile)
+	var line string = "\n"
+	if runtime.GOOS == "windows" {
+		line = "\r\n"
+	}
+	f.lg = log.New(logObj.logfile, line, log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func fileSize(file string) int64 {
