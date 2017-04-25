@@ -14,9 +14,7 @@ const (
 	_VER string = "1.0.2"
 )
 
-type LEVEL int32
-
-var logLevel LEVEL = 1
+var logLevel int = 1
 var maxFileSize int64
 var maxFileCount int32
 var dailyRolling bool = true
@@ -37,7 +35,7 @@ const (
 )
 
 const (
-	ALL LEVEL = iota
+	ALL = iota
 	DEBUG
 	INFO
 	WARN
@@ -58,10 +56,11 @@ type _FILE struct {
 }
 
 func SetConsole(isConsole bool) {
+	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
 	consoleAppender = isConsole
 }
 
-func SetLevel(_level LEVEL) {
+func SetLevel(_level int) {
 	logLevel = _level
 }
 
@@ -83,7 +82,7 @@ func SetRollingFile(fileDir, fileName string, maxNumber int32, maxSize int64, _u
 	}
 	if !logObj.isMustRename() {
 		logObj.logfile, _ = os.OpenFile(fileDir+"/"+fileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
-		logObj.lg = log.New(logObj.logfile, "", log.Ldate|log.Ltime|log.Lshortfile)
+		logObj.lg = log.New(logObj.logfile, "", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 	} else {
 		logObj.rename()
 	}
@@ -101,7 +100,7 @@ func SetRollingDaily(fileDir, fileName string) {
 
 	if !logObj.isMustRename() {
 		logObj.logfile, _ = os.OpenFile(fileDir+"/"+fileName, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666)
-		logObj.lg = log.New(logObj.logfile, "", log.Ldate|log.Ltime|log.Lshortfile)
+		logObj.lg = log.New(logObj.logfile, "", log.Ldate|log.Lmicroseconds|log.Lshortfile)
 	} else {
 		logObj.rename()
 	}
@@ -132,7 +131,7 @@ func console(level string, s ...interface{}) {
 			}
 		}
 		file = short
-		log.Println(level, file, strconv.Itoa(line), s[0])
+		log.Println(level, file+":"+strconv.Itoa(line), s[0])
 	}
 }
 
@@ -224,6 +223,9 @@ func Fatal(v ...interface{}) {
 		console("FATAL", v)
 	}
 }
+func Sprintf(v interface{}) string {
+	return fmt.Sprintf("%#v", v)
+}
 
 func (f *_FILE) isMustRename() bool {
 	if dailyRolling {
@@ -259,7 +261,7 @@ func (f *_FILE) rename() {
 			if runtime.GOOS == "windows" {
 				line = "\r\n"
 			}
-			f.lg = log.New(logObj.logfile, line, log.Ldate|log.Ltime|log.Lshortfile)
+			f.lg = log.New(logObj.logfile, line, log.Ldate|log.Lmicroseconds|log.Lshortfile)
 		}
 	} else {
 		f.coverNextOne()
@@ -284,7 +286,7 @@ func (f *_FILE) coverNextOne() {
 	if runtime.GOOS == "windows" {
 		line = "\r\n"
 	}
-	f.lg = log.New(logObj.logfile, line, log.Ldate|log.Ltime|log.Lshortfile)
+	f.lg = log.New(logObj.logfile, line, log.Ldate|log.Lmicroseconds|log.Lshortfile)
 }
 
 func fileSize(file string) int64 {
