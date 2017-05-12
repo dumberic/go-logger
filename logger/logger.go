@@ -56,7 +56,7 @@ type _FILE struct {
 }
 
 func SetConsole(isConsole bool) {
-	log.SetFlags(log.Ldate | log.Lmicroseconds | log.Lshortfile)
+	log.SetFlags(log.Ldate | log.Lmicroseconds)
 	consoleAppender = isConsole
 }
 
